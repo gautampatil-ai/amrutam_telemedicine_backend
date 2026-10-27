@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, timezone
-from jose import jwt, JWTError
+import jwt
+from jwt.exceptions import InvalidTokenError
 from pwdlib import PasswordHash
 from app.config import settings
 
@@ -24,7 +25,7 @@ def decode_token(token: str) -> dict:
     try:
         payload = jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
         if payload.get("type") != "access":
-            raise JWTError("Wrong token type")
+            raise InvalidTokenError("Wrong token type")
         return payload
-    except JWTError as exc:
+    except InvalidTokenError as exc:
         raise ValueError("Invalid or expired token") from exc
