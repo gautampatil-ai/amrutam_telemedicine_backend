@@ -1,24 +1,31 @@
-# Five-minute demo video script
+# Five-Minute Demo Video Script
 
-**0:00–0:30 — Overview**
-Show the repository and architecture diagram. Explain the stack and state that the demo uses synthetic data only.
+**0:00-0:30 - Overview**
 
-**0:30–1:10 — API documentation and auth**
-Open `/docs`. Register a patient, log in, copy the access token, call `/users/me`. Show that anonymous access fails and a patient receives `403` from admin analytics.
+Show the GitHub repository and architecture diagram. Introduce FastAPI, PostgreSQL, Redis, and the main features. Confirm that the demo uses synthetic data only.
 
-**1:10–2:20 — Doctor availability and booking**
-Using local demo doctor/admin fixtures, show verified doctor search and a future availability slot. Book with `Idempotency-Key: demo-booking-0001`. Repeat the exact request and explain safe retry behavior. Reuse the key with a different body and show `409`. Try another booking for the same slot and show `409`.
+**0:30-1:10 — API Documentation and Authentication**
 
-**2:20–3:00 — Consultation lifecycle**
-Show valid transitions: booked → confirmed → in_progress → completed. Demonstrate an invalid transition returning `409`. Show ownership checks.
+Open `/docs`. Register a patient, log in, and use the access token to call `/users/me`. Demonstrate that anonymous access is rejected and that a patient receives `403 Forbidden` when accessing admin analytics.
 
-**3:00–3:35 — Prescription and audit**
-Create a prescription as the owning doctor after completion; show that patients can read their own but not another patient's prescription. Show the admin audit log with mutation events.
+**1:10-2:20 — Doctor Availability and Booking**
 
-**3:35–4:20 — Tests and CI**
-Run `pytest`, `ruff check app tests`, and show the GitHub Actions workflow. Mention dependency scanning.
+Use the local demo doctor/admin accounts. Show verified doctor search and an upcoming availability slot. Book a consultation using `Idempotency-Key: demo-booking-0001`. Repeat the same request to demonstrate safe retries. Reuse the key with a different request body and show `409 Conflict`. Attempt to book the same slot again and show that duplicate booking is rejected.
 
-**4:20–5:00 — Observability and architecture**
-Show `/health/ready`, `/metrics`, and optional Prometheus. Explain transaction locking, Redis rate limiting, async outbox/queue production extension, backups, RPO/RTO targets and production-hardening checklist.
+**2:20-3:00 — Consultation Lifecycle**
 
-Do not claim measured 99.95% availability or p95 targets unless you run and document load tests in the target environment.
+Demonstrate the valid status transitions: `booked` -> `confirmed` -> `in_progress` -> `completed`. Show an invalid transition returning `409 Conflict` and verify resource ownership restrictions.
+
+**3:00-3:35 — Prescriptions and Audit Logs**
+
+Create a prescription as the authorized doctor after consultation completion. Show that the patient can access their own prescription but cannot access another patient's prescription. Open the admin audit log and show recorded mutation events.
+
+**3:35-4:20 — Tests and Continuous Integration**
+
+Run `python -m pytest -q` and `python -m ruff check app tests`. Open the GitHub Actions workflow and show the successful run, including dependency vulnerability scanning.
+
+**4:20-5:00 — Observability and Architecture**
+
+Show `/health/ready` and `/metrics`, and Prometheus if configured. Explain database transaction locking, Redis rate limiting, the proposed asynchronous outbox/queue, encrypted backups, and the documented recovery objectives.
+
+**Important:** Do not claim that 99.95% availability or the p95 latency targets have been achieved unless you have supporting measurements from load tests and the target deployment.
