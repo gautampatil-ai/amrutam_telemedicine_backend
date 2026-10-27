@@ -1,0 +1,53 @@
+services:
+  api:
+    build: .
+    env_file: .env
+    ports: ["8000:8000"]
+    depends_on:
+      db: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    restart: unless-stopped
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: ["no-new-privileges:true"]
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: amrutam
+      POSTGRES_USER: amrutam
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local_only_change_me}
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U amrutam -d amrutam"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD:-local_redis_change_me}"]
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-local_redis_change_me}
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$${REDIS_PASSWORD}\" ping | grep PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    volumes: [redisdata:/data]
+    restart: unless-stopped
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    profiles: ["observability"]
+    ports: ["9090:9090"]
+    volumes: ["./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro"]
+    depends_on: [api]
+  grafana:
+    image: grafana/grafana:11.4.0
+    profiles: ["observability"]
+    ports: ["3000:3000"]
+    volumes: ["grafanadata:/var/lib/grafana"]
+    depends_on: [prometheus]
+volumes:
+  pgdata:
+  redisdata:
+  grafanadata:
